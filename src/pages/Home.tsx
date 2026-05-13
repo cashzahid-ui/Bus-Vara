@@ -181,9 +181,11 @@ export default function Home() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <div className="space-y-1 mb-8">
-        <h2 className="text-2xl font-bold text-slate-800">ঢাকা মেট্রোপলিটন এলাকার বাস ভাড়া</h2>
-        <p className="text-slate-500">আপনার ভ্রমণের যাত্রা শুরু এবং গন্তব্য নির্বাচন করুন</p>
+      <div className="space-y-2 mb-8">
+        <h1 className="text-2xl font-bold text-slate-800">ঢাকা মেট্রোপলিটন এলাকার বাস ভাড়া (Dhaka City Bus Fare)</h1>
+        <p className="text-slate-600">
+          আপনার ভ্রমণের যাত্রা শুরু এবং গন্তব্য নির্বাচন করুন। এখানে আপনি খুব সহজেই BRTA Bus Fare Chart অনুযায়ী ঢাকা সিটির বাসের রুট এবং ভাড়ার তালিকা চেক করতে পারবেন।
+        </p>
         <div className="flex flex-wrap gap-3 pt-3 text-sm">
           <span className="text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-1 rounded-full font-medium flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -236,15 +238,23 @@ export default function Home() {
               No direct routes found between these two stops in the database.
             </div>
           ) : (
-            <div className="grid gap-6">
+            <table className="w-full">
+              <thead className="sr-only">
+                <tr>
+                  <th>Bus Route</th>
+                  <th>Total Distance</th>
+                  <th>Local Bus Fare</th>
+                  <th>Route Details</th>
+                </tr>
+              </thead>
+              <tbody className="grid gap-6">
               {matchingRoutes.map(route => {
                 const info = calculateFare(route, fromStop, toStop);
                 if (!info) return null;
 
                 return (
-                  <div key={route.id} className="glass-panel p-6 rounded-2xl flex flex-col justify-center relative overflow-hidden transition-all hover:-translate-y-0.5">
-                    
-                    <div className="flex flex-col items-center text-center space-y-6">
+                  <tr key={route.id} className="block glass-panel p-6 rounded-2xl relative overflow-hidden transition-all hover:-translate-y-0.5">
+                    <td className="w-full block flex flex-col items-center text-center space-y-6">
                         <div className="flex flex-col items-center">
                              <div className="flex items-center gap-2 mb-2">
                                 <span className="px-2 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded uppercase tracking-tighter">রুট {route.routeCode}</span>
@@ -290,12 +300,12 @@ export default function Home() {
                                 })}
                             </div>
                         </div>
-
-                    </div>
-                  </div>
+                    </td>
+                  </tr>
                 );
               })}
-            </div>
+              </tbody>
+            </table>
           )}
         </div>
       )}

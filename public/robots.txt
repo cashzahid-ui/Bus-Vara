@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://busvara.talukdaracademy.com.bd/sitemap.xml

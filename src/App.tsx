@@ -6,6 +6,7 @@ import { AuthProvider, useAuth } from './components/AuthProvider';
 import Home from './pages/Home';
 import Admin from './pages/Admin';
 import { FAQButton } from './components/FAQ';
+import { InstallPWA } from './components/InstallPWA';
 import { Bus, LogOut } from 'lucide-react';
 
 function Navbar() {
@@ -21,7 +22,7 @@ function Navbar() {
         </Link>
         <div className="flex flex-col">
           <Link to="/" className="hover:opacity-90 transition-opacity">
-            <h1 className="text-lg font-bold leading-none text-white">Bus Fare - DhakaMetro</h1>
+            <h1 className="text-lg font-bold leading-none text-white">ঢাকা সিটি বাস ভাড়া (Dhaka City Bus Fare)</h1>
           </Link>
           <p className="text-[10px] text-slate-400 tracking-wider mt-1.5 leading-none">
             powered by <a href="https://www.youtube.com/@talukdaracademy" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors pointer-events-auto font-medium">Talukdar Academy</a>
@@ -34,6 +35,7 @@ function Navbar() {
           <p className="text-sm font-medium text-white">২৩ এপ্রিল ২০২৬</p>
         </div>
         
+        <InstallPWA />
         <FAQButton />
         
         {isAdmin && (
@@ -61,14 +63,15 @@ function MobileNav() {
               </Link>
               <div className="flex flex-col">
                 <Link to="/" className="text-white hover:opacity-90 transition-opacity">
-                  <span className="font-bold text-lg leading-none">Bus Fare - DhakaMetro</span>
+                  <span className="font-bold text-lg leading-none">ঢাকা সিটি বাস ভাড়া</span>
                 </Link>
                 <span className="text-[9px] text-slate-400 tracking-wider mt-1 leading-none">
                   powered by <a href="https://www.youtube.com/@talukdaracademy" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 transition-colors pointer-events-auto font-medium">Talukdar Academy</a>
                 </span>
               </div>
             </div>
-            <div className="flex gap-3 items-center">
+            <div className="flex gap-2 items-center">
+                 <InstallPWA />
                  <FAQButton />
                  {isAdmin && (
                     <button onClick={logOut} className="p-1.5 text-slate-300 hover:text-red-400"><LogOut className="w-5 h-5"/></button>
