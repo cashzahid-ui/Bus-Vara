@@ -1,30 +1,31 @@
 import { useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
 
 export function GoogleAd() {
-  const insRef = useRef<HTMLModElement>(null);
-  const location = useLocation();
+  const adInit = useRef(false);
 
   useEffect(() => {
-    try {
-      if (typeof window !== 'undefined' && insRef.current) {
-        // Check if ad is already initialized to prevent double loading in React
-        if (!insRef.current.hasAttribute('data-adsbygoogle-status')) {
+    if (adInit.current) return;
+    
+    // Use a small timeout to let the DOM settle before pushing ad
+    const timer = setTimeout(() => {
+      try {
+        if (typeof window !== 'undefined') {
           // @ts-ignore
-          const adsbygoogle = window.adsbygoogle || [];
-          adsbygoogle.push({});
+          (window.adsbygoogle = window.adsbygoogle || []).push({});
+          adInit.current = true;
         }
+      } catch (err: any) {
+        if (err.message && err.message.includes('already have ads')) return;
+        console.error('Google Adsense Error:', err);
       }
-    } catch (err: any) {
-      if (err.message && err.message.includes('already have ads')) return;
-      console.error('Google Adsense Error:', err);
-    }
-  }, [location.pathname]);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <div className="w-full my-4 overflow-hidden flex justify-center bg-slate-50/50 rounded-xl p-2 min-h-[100px] relative">
+    <div className="w-full my-4 overflow-hidden flex justify-center bg-transparent rounded-xl p-2 min-h-[100px]">
       <ins 
-        ref={insRef}
         className="adsbygoogle"
         style={{ display: 'block', width: '100%' }}
         data-ad-client="ca-pub-7608093638667157"

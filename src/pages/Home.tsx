@@ -47,7 +47,7 @@ function SearchableSelect({
 
   const filteredOptions = options.filter(option =>
     option.toLowerCase().includes(search.toLowerCase())
-  );
+  ).slice(0, 50); // limit to 50 items for faster mobile rendering
 
   return (
     <div ref={wrapperRef} className="relative w-full">

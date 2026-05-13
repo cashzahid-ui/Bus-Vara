@@ -1,14 +1,17 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { AuthProvider, useAuth } from './components/AuthProvider';
-import Home from './pages/Home';
-import Admin from './pages/Admin';
 import { FAQButton } from './components/FAQ';
 import { InstallPWA } from './components/InstallPWA';
 import { OfflineNotice } from './components/OfflineNotice';
 import { Bus, LogOut } from 'lucide-react';
+
+const Home = lazy(() => import('./pages/Home'));
+const Admin = lazy(() => import('./pages/Admin'));
+
 
 function Navbar() {
   const { logOut, isAdmin } = useAuth();
@@ -100,10 +103,12 @@ function AppContent() {
       <Navbar />
       <MobileNav />
       <main className="flex-1 overflow-y-auto p-4 sm:p-8">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<Admin />} />
-        </Routes>
+        <Suspense fallback={<div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </Suspense>
       </main>
       
       {/* Footer / Status Bar */}
