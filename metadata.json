@@ -1,0 +1,6 @@
+{
+  "name": "Bus Fare - DhakaMetro",
+  "description": "A comprehensive fare management and calculation system for Dhaka Metropolitan bus routes, featuring automated data extraction from documents.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}

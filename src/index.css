@@ -1,0 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Tiro+Bangla:ital@0;1&display=swap');
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-size: 18px;
+  }
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-white border border-slate-200 shadow-sm shadow-slate-200/50;
+  }
+}
+
+@theme {
+  --font-sans: "SutonnyOMJ", "SutonnyOMJ Unicode", "SolaimanLipi", "Kalpurush", "Tiro Bangla", "Inter", ui-sans-serif, system-ui, sans-serif;
+}

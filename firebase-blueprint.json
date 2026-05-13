@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "Route": {
+      "title": "Route",
+      "description": "Represents a bus route with stops, distances, and fare information.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID of the user who added the route."
+        },
+        "routeName": {
+          "type": "string",
+          "description": "The descriptive name of the route."
+        },
+        "routeCode": {
+          "type": "string",
+          "description": "A short code for the route (e.g., A-101)."
+        },
+        "stops": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "List of stops on the route."
+        },
+        "distances": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "Distances corresponding to each stop."
+        },
+        "farePerKm": {
+          "type": "number",
+          "description": "The fare charged per kilometer."
+        },
+        "minFare": {
+          "type": "number",
+          "description": "The minimum fare for the route."
+        },
+        "adminCode": {
+          "type": "string",
+          "description": "Internal code for admin verification."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the route was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the route was last updated."
+        }
+      },
+      "required": ["userId", "routeName", "stops", "distances", "farePerKm", "minFare", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Represents an administrative user with write access.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin"] }
+      },
+      "required": ["email", "role"]
+    }
+  },
+  "firestore": {
+    "/routes/{routeId}": {
+      "schema": "Route",
+      "description": "Collection of all bus routes."
+    },
+    "/admins/{adminId}": {
+      "schema": "Admin",
+      "description": "Collection of admin users."
+    }
+  }
+}

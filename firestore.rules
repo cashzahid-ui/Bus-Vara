@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isEmailVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'cashzahid@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidRoute(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.routeName is string && data.routeName.size() <= 200 &&
+             data.routeCode is string && data.routeCode.size() <= 20 &&
+             data.stops is list && data.stops.size() > 0 && data.stops.size() <= 100 &&
+             data.distances is list && data.distances.size() == data.stops.size() &&
+             data.farePerKm is number && data.farePerKm > 0 &&
+             data.minFare is number && data.minFare >= 0 &&
+             data.adminCode is string && data.adminCode.size() <= 50 &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    // --- Collection Rules ---
+
+    match /routes/{routeId} {
+      allow read: if true;
+      allow create: if isAdmin() && 
+                    isValidId(routeId) && 
+                    isValidRoute(incoming()) &&
+                    incoming().createdAt == request.time &&
+                    incoming().updatedAt == request.time;
+      
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin() && isValidId(routeId);
+    }
+
+    match /stats/{docId} {
+      allow read: if true;
+      allow update: if docId == 'counters' || docId == 'searchCount';
+      allow create: if true;
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdmin();
+      // Only the first admin (bootstrapped) or an existing admin can write
+      allow write: if isAdmin() && isValidId(adminId);
+    }
+  }
+}
