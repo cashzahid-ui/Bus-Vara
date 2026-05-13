@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../components/AuthProvider';
-import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, orderBy, query, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, serverTimestamp, orderBy, query, updateDoc, setDoc, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { extractRoutesFromDocument } from '../lib/gemini';
 import { Upload, Trash2, FileImage, ShieldAlert, CheckCircle2, Edit2, X, Plus, KeyRound, Download } from 'lucide-react';
@@ -257,6 +257,106 @@ function EditRouteModal({ route, onClose, onSaved }: { route: RouteData, onClose
   );
 }
 
+function MappingsManager() {
+  const [mappings, setMappings] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [newBn, setNewBn] = useState('');
+  const [newEn, setNewEn] = useState('');
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'mappings'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().mappings) {
+        setMappings(docSnap.data().mappings);
+      }
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching mappings:", error);
+      setLoading(false);
+    });
+    return () => unsub();
+  }, []);
+
+  const handleSave = async (updatedMappings: Record<string, string>) => {
+    setSaving(true);
+    try {
+      await setDoc(doc(db, 'settings', 'mappings'), { mappings: updatedMappings }, { merge: true });
+    } catch (error) {
+      console.error("Failed to save mappings", error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleAdd = () => {
+    if (!newBn.trim() || !newEn.trim()) return;
+    const updated = { ...mappings, [newBn.trim()]: newEn.trim() };
+    setMappings(updated);
+    handleSave(updated);
+    setNewBn('');
+    setNewEn('');
+  };
+
+  const handleDelete = (key: string) => {
+    const updated = { ...mappings };
+    delete updated[key];
+    setMappings(updated);
+    handleSave(updated);
+  };
+
+  if (loading) return <div>Loading mappings...</div>;
+
+  return (
+    <div className="glass-panel p-8 rounded-2xl mb-8">
+      <h2 className="text-lg font-semibold mb-4 text-slate-800">Location Name Mappings (Bangla to English)</h2>
+      <p className="text-sm text-slate-500 mb-6">Add or remove custom translation mappings for location names that don't match correctly.</p>
+      
+      <div className="flex gap-4 mb-6 relative z-0">
+        <input 
+          value={newBn} 
+          onChange={e => setNewBn(e.target.value)} 
+          placeholder="Bangla (e.g. নতুন রূপনগর)" 
+          className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        <input 
+          value={newEn} 
+          onChange={e => setNewEn(e.target.value)} 
+          placeholder="English (e.g. Natun Rupnagar)" 
+          className="flex-1 px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+        />
+        <button 
+          onClick={handleAdd}
+          disabled={saving || !newBn || !newEn}
+          className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-bold disabled:opacity-50"
+        >
+          Add
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-h-64 overflow-y-auto pr-2">
+        {Object.entries(mappings).map(([bn, en]) => (
+          <div key={bn} className="flex justify-between items-center bg-white p-3 rounded-lg border border-slate-200">
+            <div className="flex flex-col">
+              <span className="font-bold text-slate-700 text-sm">{bn}</span>
+              <span className="text-slate-500 text-xs">{en}</span>
+            </div>
+            <button 
+              onClick={() => handleDelete(bn)}
+              disabled={saving}
+              className="text-red-400 hover:bg-red-50 p-1.5 rounded-md transition-colors"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+        {Object.keys(mappings).length === 0 && (
+          <p className="text-sm text-slate-400 italic">No custom mappings added yet.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const { user, isAdmin, signIn } = useAuth();
   const [routes, setRoutes] = useState<RouteData[]>([]);
@@ -505,6 +605,8 @@ export default function Admin() {
         <h1 className="text-2xl font-bold text-slate-800">Admin Dashboard</h1>
         <p className="text-slate-500">Upload Bus Fare PDFs/Images to add routes database.</p>
       </div>
+
+      <MappingsManager />
 
       <div className="glass-panel p-8 rounded-2xl">
         <h2 className="text-lg font-semibold mb-4 text-slate-800">Upload New Route Table</h2>

@@ -3,8 +3,10 @@ import { collection, getDocs, query, doc, setDoc, increment } from 'firebase/fir
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { sortRoutes } from '../lib/sort';
 import { GoogleAd } from '../components/GoogleAd';
+import { transliterateBnToEn } from '../lib/transliterate';
 import { MapPin, BusFront, ArrowRight, Search } from 'lucide-react';
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface RouteData {
   id: string;
@@ -16,6 +18,12 @@ interface RouteData {
   minFare: number;
 }
 
+interface StopOption {
+  bn: string;
+  en: string;
+  display: string;
+}
+
 function SearchableSelect({ 
   value, 
   onChange, 
@@ -24,16 +32,19 @@ function SearchableSelect({
 }: { 
   value: string, 
   onChange: (s: string) => void, 
-  options: string[], 
+  options: StopOption[], 
   placeholder: string 
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [search, setSearch] = useState(value);
+  const [search, setSearch] = useState("");
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // When selected value changes from outside, reset search to show the full display string
+  // Wait, if we keep `value` as the Bengali string `bn`, we should set `search` to `display`
   useEffect(() => {
-    setSearch(value);
-  }, [value]);
+    const selectedOpt = options.find(o => o.bn === value);
+    setSearch(selectedOpt ? selectedOpt.display : value);
+  }, [value, options]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -46,7 +57,9 @@ function SearchableSelect({
   }, [wrapperRef]);
 
   const filteredOptions = options.filter(option =>
-    option.toLowerCase().includes(search.toLowerCase())
+    option.display.toLowerCase().includes(search.toLowerCase()) || 
+    option.en.toLowerCase().includes(search.toLowerCase()) || 
+    option.bn.toLowerCase().includes(search.toLowerCase())
   ).slice(0, 50); // limit to 50 items for faster mobile rendering
 
   return (
@@ -62,7 +75,10 @@ function SearchableSelect({
                 onChange("");
             }
           }}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsOpen(true);
+            setSearch(""); // clear search on focus to easily type new destination
+          }}
           className="w-full h-14 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none text-lg text-slate-800"
           placeholder={placeholder}
         />
@@ -75,12 +91,12 @@ function SearchableSelect({
               key={index}
               className="px-4 py-3 hover:bg-blue-50 cursor-pointer text-slate-700 font-medium border-b border-slate-50 last:border-0"
               onClick={() => {
-                onChange(option);
-                setSearch(option);
+                onChange(option.bn);
+                setSearch(option.display);
                 setIsOpen(false);
               }}
             >
-              {option}
+              {option.display}
             </li>
           ))}
         </ul>
@@ -94,6 +110,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [fromStop, setFromStop] = useState('');
   const [toStop, setToStop] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const lastSearchRef = useRef<string>('');
 
   useEffect(() => {
@@ -135,7 +153,15 @@ export default function Home() {
     routes.forEach(route => {
       route.stops.forEach(stop => stopsSet.add(stop));
     });
-    return Array.from(stopsSet).sort();
+    
+    return Array.from(stopsSet).sort().map(stop => {
+      const en = transliterateBnToEn(stop);
+      return {
+        bn: stop,
+        en: en,
+        display: stop
+      };
+    });
   }, [routes]);
 
   const matchingRoutes = useMemo(() => {
@@ -207,7 +233,7 @@ export default function Home() {
             </label>
             <SearchableSelect
               value={fromStop}
-              onChange={setFromStop}
+              onChange={(val) => { setFromStop(val); setHasSearched(false); }}
               options={allStops}
               placeholder="Search origin stop..."
             />
@@ -219,19 +245,65 @@ export default function Home() {
             </label>
             <SearchableSelect
               value={toStop}
-              onChange={setToStop}
+              onChange={(val) => { setToStop(val); setHasSearched(false); }}
               options={allStops}
               placeholder="Search destination stop..."
             />
           </div>
         </div>
+
+        <button
+          onClick={() => {
+            if (fromStop && toStop && fromStop !== toStop) {
+              setHasSearched(true);
+              if (matchingRoutes.length > 0) {
+                 setShowSuccessPopup(true);
+                 setTimeout(() => setShowSuccessPopup(false), 5000);
+              }
+            }
+          }}
+          className={`w-full font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors ${
+            fromStop && toStop && fromStop !== toStop
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+          }`}
+          disabled={!fromStop || !toStop || fromStop === toStop}
+        >
+          <Search className="w-5 h-5" />
+          রুট ও ভাড়া খুঁজুন
+        </button>
       </div>
 
       <div className="my-6">
         <GoogleAd />
       </div>
 
-      {fromStop && toStop && fromStop !== toStop && (
+      {/* Popup Notification */}
+      <AnimatePresence>
+        {fromStop && toStop && fromStop !== toStop && hasSearched && matchingRoutes.length > 0 && showSuccessPopup && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm"
+          >
+            <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center text-center gap-2 border border-emerald-500">
+              <span className="text-3xl mb-1">🎉</span>
+              <p className="font-bold text-lg leading-tight">আপনার কাঙ্ক্ষিত বাস ও ভাড়ার তথ্য পাওয়া গেছে!</p>
+              <p className="text-sm opacity-90">বিস্তারিত দেখতে অনুগ্রহ করে নিচের দিকে স্ক্রল করুন।</p>
+              <button 
+                onClick={() => setShowSuccessPopup(false)}
+                className="mt-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
+                aria-label="Close message"
+              >
+                ঠিক আছে
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {fromStop && toStop && fromStop !== toStop && hasSearched && (
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <BusFront className="h-5 w-5" />

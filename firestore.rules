@@ -75,5 +75,9 @@ service cloud.firestore {
       // Only the first admin (bootstrapped) or an existing admin can write
       allow write: if isAdmin() && isValidId(adminId);
     }
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }

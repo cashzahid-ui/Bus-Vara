@@ -77,7 +77,7 @@ export function FAQButton() {
   );
 }
 
-function FAQItem({ question, answer }: { question: string, answer: string }) {
+function FAQItem({ question, answer }: { question: string, answer: string, key?: any }) {
   const [expanded, setExpanded] = useState(false);
   
   return (

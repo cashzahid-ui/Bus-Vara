@@ -1,17 +1,28 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from './lib/firebase';
 import { AuthProvider, useAuth } from './components/AuthProvider';
 import { FAQButton } from './components/FAQ';
 import { InstallPWA } from './components/InstallPWA';
 import { OfflineNotice } from './components/OfflineNotice';
 import { Bus, LogOut } from 'lucide-react';
+import { setCustomMappings } from './lib/transliterate';
 
 const Home = lazy(() => import('./pages/Home'));
 const Admin = lazy(() => import('./pages/Admin'));
 
+function useSettings() {
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, 'settings', 'mappings'), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().mappings) {
+        setCustomMappings(docSnap.data().mappings);
+      }
+    });
+    return () => unsub();
+  }, []);
+}
 
 function Navbar() {
   const { logOut, isAdmin } = useAuth();
@@ -87,6 +98,7 @@ function MobileNav() {
 
 function AppContent() {
   const [searchCount, setSearchCount] = useState<number>(0);
+  useSettings();
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'stats', 'searchCount'), (docSnap) => {
