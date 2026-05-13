@@ -1,7 +1,18 @@
 import { GoogleGenAI } from '@google/genai';
 import { PDFDocument } from 'pdf-lib';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+let aiClient: GoogleGenAI | null = null;
+
+function getAiClient(): GoogleGenAI {
+  if (!aiClient) {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) {
+      console.warn("GEMINI_API_KEY environment variable is missing.");
+    }
+    aiClient = new GoogleGenAI({ apiKey: key || 'placeholder-key-to-prevent-crash' });
+  }
+  return aiClient;
+}
 
 export interface ExtractedRoute {
   routeName: string;
@@ -47,6 +58,7 @@ async function getBase64Data(fileOrBlob: File | Blob): Promise<string> {
 }
 
 async function extractSingleDoc(base64Data: string, mimeType: string): Promise<ExtractedRoute[]> {
+  const ai = getAiClient();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: [
