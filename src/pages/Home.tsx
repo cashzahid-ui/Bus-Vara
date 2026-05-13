@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useRef } from 'react';
 import { collection, getDocs, query, doc, setDoc, increment } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../lib/firebase';
 import { sortRoutes } from '../lib/sort';
+import { GoogleAd } from '../components/GoogleAd';
 import { MapPin, BusFront, ArrowRight, Search } from 'lucide-react';
 import React from 'react';
 
@@ -226,6 +227,10 @@ export default function Home() {
         </div>
       </div>
 
+      <div className="my-6">
+        <GoogleAd />
+      </div>
+
       {fromStop && toStop && fromStop !== toStop && (
         <div className="space-y-6">
           <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
@@ -248,12 +253,13 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody className="grid gap-6">
-              {matchingRoutes.map(route => {
+              {matchingRoutes.map((route, index) => {
                 const info = calculateFare(route, fromStop, toStop);
                 if (!info) return null;
 
                 return (
-                  <tr key={route.id} className="block glass-panel p-6 rounded-2xl relative overflow-hidden transition-all hover:-translate-y-0.5">
+                  <React.Fragment key={route.id}>
+                    <tr className="block glass-panel p-6 rounded-2xl relative overflow-hidden transition-all hover:-translate-y-0.5">
                     <td className="w-full block flex flex-col items-center text-center space-y-6">
                         <div className="flex flex-col items-center">
                              <div className="flex items-center gap-2 mb-2">
@@ -302,6 +308,15 @@ export default function Home() {
                         </div>
                     </td>
                   </tr>
+                  
+                  {index === 0 && matchingRoutes.length > 1 && (
+                    <tr className="block">
+                      <td className="block w-full">
+                        <GoogleAd />
+                      </td>
+                    </tr>
+                  )}
+                  </React.Fragment>
                 );
               })}
               </tbody>
@@ -309,6 +324,21 @@ export default function Home() {
           )}
         </div>
       )}
+
+      {/* SEO Footer Text */}
+      <div className="mt-16 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm text-slate-600 text-sm leading-relaxed space-y-4">
+        <h2 className="text-lg font-bold text-slate-800">ঢাকা সিটি বাস ভাড়া ও লোকাল বাসের রুট ম্যাপ সম্পর্কে (Dhaka City Bus Fare & Route)</h2>
+        <p>
+          ঢাকা মেট্রোপলিটন শহরের নিত্যযাত্রীদের জন্য <strong>Dhaka City Bus Fare</strong> বা <strong>বাসের রুট এবং ভাড়ার তালিকা</strong> জানা অত্যন্ত জরুরি। প্রতিদিন হাজারো মানুষ কাজের উদ্দেশ্যে ঢাকার বিভিন্ন প্রান্তে যাতায়াত করেন। বিআরটিএ (BRTA) নির্ধারিত সর্বশেষ <strong>BRTA Bus Fare Chart</strong> অনুযায়ী সঠিক <strong>local bus vara</strong> বা ভাড়া জানার মাধ্যমে আপনি নিশ্চিন্তে ও সহজে ভ্রমণ করতে পারেন।
+        </p>
+        <p>
+          আমাদের এই প্ল্যাটফর্মে আপনি খুব সহজেই উৎপত্তি এবং গন্তব্যস্থল নির্বাচন করে <strong>dhaka city local bus</strong> এর সঠিক ভাড়া, দূরত্ব এবং রুট ম্যাপ সম্পর্কে বিস্তারিত জানতে পারবেন। এটি আপনাকে অতিরিক্ত <strong>bus vara</strong> দেওয়ার ঝামেলা থেকে মুক্ত রাখবে এবং আপনার যাত্রাকে আরও সাশ্রয়ী করবে। 
+        </p>
+        <p>
+           আমাদের সিস্টেমে ঢাকার প্রায় সব লোকাল বাসের রুট এবং স্টপেজগুলোর তথ্য নিয়মিত আপডেট করা হয়। তাই ঘরে বসেই <strong>ঢাকার বাস ভাড়া</strong> চেক করুন এবং নিরাপদে ভ্রমণ করুন।
+        </p>
+      </div>
+
     </div>
   );
 }

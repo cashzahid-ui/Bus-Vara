@@ -7,6 +7,7 @@ import Home from './pages/Home';
 import Admin from './pages/Admin';
 import { FAQButton } from './components/FAQ';
 import { InstallPWA } from './components/InstallPWA';
+import { OfflineNotice } from './components/OfflineNotice';
 import { Bus, LogOut } from 'lucide-react';
 
 function Navbar() {
@@ -95,6 +96,7 @@ function AppContent() {
 
   return (
     <div className="w-full h-screen flex flex-col overflow-hidden bg-slate-50 text-slate-900">
+      <OfflineNotice />
       <Navbar />
       <MobileNav />
       <main className="flex-1 overflow-y-auto p-4 sm:p-8">
