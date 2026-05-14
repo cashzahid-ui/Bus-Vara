@@ -2,29 +2,47 @@ import { useEffect, useRef } from 'react';
 
 export function GoogleAd() {
   const adInit = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (adInit.current) return;
+    if (adInit.current || !containerRef.current) return;
     
-    // Use a small timeout to let the DOM settle before pushing ad
-    const timer = setTimeout(() => {
+    let observer: ResizeObserver;
+    let timer: NodeJS.Timeout;
+
+    const tryPushAd = () => {
       try {
         if (typeof window !== 'undefined') {
           // @ts-ignore
           (window.adsbygoogle = window.adsbygoogle || []).push({});
           adInit.current = true;
+          if (observer) observer.disconnect();
         }
       } catch (err: any) {
         if (err.message && err.message.includes('already have ads')) return;
         console.error('Google Adsense Error:', err);
       }
-    }, 300);
+    };
 
-    return () => clearTimeout(timer);
+    observer = new ResizeObserver((entries) => {
+      for (let entry of entries) {
+        if (entry.contentRect.width > 0 && !adInit.current) {
+          clearTimeout(timer);
+          timer = setTimeout(tryPushAd, 200);
+        }
+      }
+    });
+
+    observer.observe(containerRef.current);
+
+    return () => {
+      clearTimeout(timer);
+      if (observer) observer.disconnect();
+    };
   }, []);
 
   return (
-    <div className="w-full my-4 overflow-hidden flex justify-center bg-transparent rounded-xl p-2 min-h-[100px]">
+    <div ref={containerRef} className="w-full my-4 overflow-hidden flex justify-center items-center bg-transparent rounded-xl" style={{ minWidth: '200px', minHeight: '100px' }}>
       <ins 
         className="adsbygoogle"
         style={{ display: 'block', width: '100%' }}

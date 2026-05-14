@@ -12,7 +12,7 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['icon.png'],
         manifest: {
           name: 'Dhaka Bus Fare',
           short_name: 'Bus Fare',
@@ -20,9 +20,9 @@ export default defineConfig(({mode}) => {
           theme_color: '#ffffff',
           icons: [
             {
-              src: 'icon.svg',
+              src: 'icon.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
+              type: 'image/png',
               purpose: 'any maskable'
             }
           ]
