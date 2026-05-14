@@ -12,6 +12,8 @@ import { setCustomMappings } from './lib/transliterate';
 
 const Home = lazy(() => import('./pages/Home'));
 const Admin = lazy(() => import('./pages/Admin'));
+const Blog = lazy(() => import('./pages/Blog'));
+const BlogPost = lazy(() => import('./pages/BlogPost'));
 
 function useSettings() {
   useEffect(() => {
@@ -51,6 +53,9 @@ function Navbar() {
         </div>
         
         <InstallPWA />
+        <Link to="/blog" className="text-slate-300 hover:text-white font-medium text-sm transition-colors border border-slate-700 hover:border-slate-600 px-3 py-1.5 rounded-lg">
+          Blog
+        </Link>
         <FAQButton />
         
         {isAdmin && (
@@ -87,6 +92,9 @@ function MobileNav() {
             </div>
             <div className="flex gap-2 items-center">
                  <InstallPWA />
+                 <Link to="/blog" className="text-slate-300 hover:text-white font-medium text-xs px-2 py-1.5 bg-slate-800 rounded-lg">
+                   Blog
+                 </Link>
                  <FAQButton />
                  {isAdmin && (
                     <button onClick={logOut} className="p-1.5 text-slate-300 hover:text-red-400"><LogOut className="w-5 h-5"/></button>
@@ -118,6 +126,8 @@ function AppContent() {
         <Suspense fallback={<div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/blog" element={<Blog />} />
+            <Route path="/blog/:slug" element={<BlogPost />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </Suspense>
