@@ -111,7 +111,7 @@ export default function Home() {
   const [fromStop, setFromStop] = useState('');
   const [toStop, setToStop] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
   const lastSearchRef = useRef<string>('');
 
   useEffect(() => {
@@ -256,10 +256,8 @@ export default function Home() {
           onClick={() => {
             if (fromStop && toStop && fromStop !== toStop) {
               setHasSearched(true);
-              if (matchingRoutes.length > 0) {
-                 setShowSuccessPopup(true);
-                 setTimeout(() => setShowSuccessPopup(false), 5000);
-              }
+              setShowPopup(true);
+              setTimeout(() => setShowPopup(false), 5000);
             }
           }}
           className={`w-full font-semibold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors ${
@@ -280,25 +278,40 @@ export default function Home() {
 
       {/* Popup Notification */}
       <AnimatePresence>
-        {fromStop && toStop && fromStop !== toStop && hasSearched && matchingRoutes.length > 0 && showSuccessPopup && (
+        {fromStop && toStop && fromStop !== toStop && hasSearched && showPopup && (
           <motion.div
             initial={{ opacity: 0, y: 50, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm"
           >
-            <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center text-center gap-2 border border-emerald-500">
-              <span className="text-3xl mb-1">🎉</span>
-              <p className="font-bold text-lg leading-tight">আপনার কাঙ্ক্ষিত বাস ও ভাড়ার তথ্য পাওয়া গেছে!</p>
-              <p className="text-sm opacity-90">বিস্তারিত দেখতে অনুগ্রহ করে নিচের দিকে স্ক্রল করুন।</p>
-              <button 
-                onClick={() => setShowSuccessPopup(false)}
-                className="mt-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
-                aria-label="Close message"
-              >
-                ঠিক আছে
-              </button>
-            </div>
+            {matchingRoutes.length > 0 ? (
+              <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center text-center gap-2 border border-emerald-500">
+                <span className="text-3xl mb-1">🎉</span>
+                <p className="font-bold text-lg leading-tight">আপনার কাঙ্ক্ষিত বাস ও ভাড়ার তথ্য পাওয়া গেছে!</p>
+                <p className="text-sm opacity-90">বিস্তারিত দেখতে অনুগ্রহ করে নিচের দিকে স্ক্রল করুন।</p>
+                <button 
+                  onClick={() => setShowPopup(false)}
+                  className="mt-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
+                  aria-label="Close message"
+                >
+                  ঠিক আছে
+                </button>
+              </div>
+            ) : (
+              <div className="bg-red-600 text-white p-4 rounded-2xl shadow-2xl flex flex-col items-center text-center gap-2 border border-red-500">
+                <span className="text-3xl mb-1">😕</span>
+                <p className="font-bold text-lg leading-tight">দুঃখিত, কোনো বাস বা ভাড়ার তথ্য পাওয়া যায়নি!</p>
+                <p className="text-sm opacity-90">আপনার নির্বাচিত স্টপেজগুলোর মধ্যে সরাসরি কোনো বাসের রুট আমাদের ডাটাবেজে নেই।</p>
+                <button 
+                  onClick={() => setShowPopup(false)}
+                  className="mt-2 text-xs font-bold bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
+                  aria-label="Close message"
+                >
+                  ঠিক আছে
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
       </AnimatePresence>
