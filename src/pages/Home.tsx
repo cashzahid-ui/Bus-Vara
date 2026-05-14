@@ -394,7 +394,7 @@ export default function Home() {
                     </td>
                   </tr>
                   
-                  {index === 0 && matchingRoutes.length > 1 && (
+                  {index < matchingRoutes.length - 1 && (
                     <tr className="block">
                       <td className="block w-full">
                         <GoogleAd />
